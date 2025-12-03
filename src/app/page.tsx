@@ -108,15 +108,15 @@ export default function HomePage () {
             {/* Stats */}
             <div className="pt-12 grid grid-cols-3 gap-8 max-w-lg mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-primary">10K+</div>
+                <div className="text-2xl md:text-3xl font-bold text-primary">xx</div>
                 <div className="text-sm text-muted-foreground">Users</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-primary">$5M+</div>
+                <div className="text-2xl md:text-3xl font-bold text-primary">xx</div>
                 <div className="text-sm text-muted-foreground">Tracked</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-primary">4.9★</div>
+                <div className="text-2xl md:text-3xl font-bold text-primary">xx★</div>
                 <div className="text-sm text-muted-foreground">Rating</div>
               </div>
             </div>
@@ -164,7 +164,7 @@ export default function HomePage () {
               Ready to take control of your finances?
             </h2>
             <p className="text-lg text-muted-foreground">
-              Join thousands of users already using Konnektaro to build a better financial future.
+              Join others who are using Konnektaro to build a better financial future.
             </p>
             <Link href="/register">
               <Button size="lg" className="text-lg px-8 h-12 shadow-xl shadow-primary/25">

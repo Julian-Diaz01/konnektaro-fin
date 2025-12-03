@@ -1,6 +1,5 @@
 -- Konnektaro Finance Database Schema
 -- Personal Finance App
--- Run this in your Supabase SQL Editor to set up the database
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
