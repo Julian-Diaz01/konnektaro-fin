@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "konnektaro-fin",
     "public": "out",
     "ignore": [
       "firebase.json",
