@@ -74,5 +74,3 @@ export function subscribeToAuthChanges (callback: (user: User | null) => void) {
 }
 
 export type { User }
-
-

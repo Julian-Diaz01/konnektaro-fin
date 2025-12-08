@@ -10,11 +10,9 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider ({ children }: AuthProviderProps) {
-  const { setUser, setLoading } = useAuthStore()
+  const { setUser } = useAuthStore()
 
   useEffect(() => {
-    setLoading(true)
-
     const unsubscribe = subscribeToAuthChanges(async (user) => {
       if (user) {
         try {
@@ -26,12 +24,12 @@ export function AuthProvider ({ children }: AuthProviderProps) {
       } else {
         removeAuthCookie()
       }
-      
+
       setUser(user)
     })
 
     return () => unsubscribe()
-  }, [setUser, setLoading])
+  }, [setUser])
 
   return <>{children}</>
 }

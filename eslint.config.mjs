@@ -30,7 +30,7 @@ const eslintConfig = defineConfig([
       '@stylistic/key-spacing': ['error', { beforeColon: false, afterColon: true }],
 
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      'react/prop-types': 'off', 
+      'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
 
       // General rules

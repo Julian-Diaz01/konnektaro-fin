@@ -76,5 +76,3 @@ export function useAuth () {
     logout
   }
 }
-
-

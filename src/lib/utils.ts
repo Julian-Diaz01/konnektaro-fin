@@ -33,4 +33,3 @@ export function formatRelativeDate (date: Date | string): string {
   if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`
   return formatDate(d)
 }
-

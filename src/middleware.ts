@@ -9,15 +9,15 @@ const authRoutes = ['/login', '/register']
 
 export function middleware (request: NextRequest) {
   const { pathname } = request.nextUrl
-  
+
   const authToken = request.cookies.get('auth-token')?.value
   const isAuthenticated = !!authToken
 
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isProtectedRoute = protectedRoutes.some(route =>
     pathname.startsWith(route)
   )
 
-  const isAuthRoute = authRoutes.some(route => 
+  const isAuthRoute = authRoutes.some(route =>
     pathname.startsWith(route)
   )
 
@@ -36,6 +36,6 @@ export function middleware (request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|_next).*)',
-  ],
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|_next).*)'
+  ]
 }
