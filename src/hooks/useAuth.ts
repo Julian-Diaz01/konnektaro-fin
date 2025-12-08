@@ -10,6 +10,7 @@ import {
   signOut
 } from '@/lib/firebase'
 import { useAuthStore } from '@/stores/authStore'
+import { removeAuthCookie } from '@/lib/cookies'
 
 export function useAuth () {
   const router = useRouter()
@@ -54,6 +55,7 @@ export function useAuth () {
   const logout = useCallback(async () => {
     try {
       await signOut()
+      removeAuthCookie()
       clearAuth()
       toast.success('Signed out successfully')
       router.push('/')
