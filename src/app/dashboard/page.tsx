@@ -1,7 +1,9 @@
+'use client'
+
 import { Wallet, TrendingUp, TrendingDown, Target } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { PageLayout } from '@/components/layout'
 
 // Placeholder data for UI demonstration
 const stats = [
@@ -45,89 +47,67 @@ const recentTransactions = [
 
 export default function DashboardPage () {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">K</span>
-            </div>
-            <span className="font-semibold text-lg">Konnektaro</span>
-          </div>
+    <PageLayout>
+      {/* Welcome Section */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Welcome back! 👋</h1>
+        <p className="text-muted-foreground">Here&apos;s an overview of your finances.</p>
+      </div>
 
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <Button variant="outline" size="sm">
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        {stats.map((stat) => (
+          <Card key={stat.title} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+              <stat.icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              {stat.change && (
+                <p className={`text-xs ${stat.trend === 'up' ? 'text-success' : 'text-destructive'}`}>
+                  {stat.change} from last month
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome back! 👋</h1>
-          <p className="text-muted-foreground">Here&apos;s an overview of your finances.</p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          {stats.map((stat) => (
-            <Card key={stat.title} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                {stat.change && (
-                  <p className={`text-xs ${stat.trend === 'up' ? 'text-success' : 'text-destructive'}`}>
-                    {stat.change} from last month
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Recent Transactions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-            <CardDescription>Your latest financial activity</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentTransactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="flex items-center justify-between py-3 border-b last:border-0"
-                >
-                  <div className="flex flex-col">
-                    <span className="font-medium">{transaction.description}</span>
-                    <span className="text-sm text-muted-foreground">{transaction.category}</span>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className={`font-semibold ${transaction.amount > 0 ? 'text-success' : 'text-foreground'}`}>
-                      {transaction.amount > 0 ? '+' : ''}
-                      ${Math.abs(transaction.amount).toFixed(2)}
-                    </span>
-                    <span className="text-sm text-muted-foreground">{transaction.date}</span>
-                  </div>
+      {/* Recent Transactions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Transactions</CardTitle>
+          <CardDescription>Your latest financial activity</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentTransactions.map((transaction) => (
+              <div
+                key={transaction.id}
+                className="flex items-center justify-between py-3 border-b last:border-0"
+              >
+                <div className="flex flex-col">
+                  <span className="font-medium">{transaction.description}</span>
+                  <span className="text-sm text-muted-foreground">{transaction.category}</span>
                 </div>
-              ))}
-            </div>
-            <Button variant="outline" className="w-full mt-4">
-              View All Transactions
-            </Button>
-          </CardContent>
-        </Card>
-      </main>
-    </div>
+                <div className="flex flex-col items-end">
+                  <span className={`font-semibold ${transaction.amount > 0 ? 'text-success' : 'text-foreground'}`}>
+                    {transaction.amount > 0 ? '+' : ''}
+                    ${Math.abs(transaction.amount).toFixed(2)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">{transaction.date}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <Button variant="outline" className="w-full mt-4">
+            View All Transactions
+          </Button>
+        </CardContent>
+      </Card>
+    </PageLayout>
   )
 }
