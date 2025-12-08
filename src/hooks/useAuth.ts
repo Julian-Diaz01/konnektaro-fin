@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
   signInWithEmail,
@@ -12,15 +12,20 @@ import {
 import { useAuthStore } from '@/stores/authStore'
 import { removeAuthCookie } from '@/lib/cookies'
 
+function getCallbackUrl (): string {
+  if (typeof window === 'undefined') return '/dashboard'
+  const params = new URLSearchParams(window.location.search)
+  const callbackUrl = params.get('callbackUrl')
+  return callbackUrl && callbackUrl.startsWith('/') ? callbackUrl : '/dashboard'
+}
+
 export function useAuth () {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { user, isLoading, isAuthenticated, logout: clearAuth } = useAuthStore()
 
   const getRedirectUrl = useCallback(() => {
-    const callbackUrl = searchParams.get('callbackUrl')
-    return callbackUrl && callbackUrl.startsWith('/') ? callbackUrl : '/dashboard'
-  }, [searchParams])
+    return getCallbackUrl()
+  }, [])
 
   const login = useCallback(async (email: string, password: string) => {
     try {
