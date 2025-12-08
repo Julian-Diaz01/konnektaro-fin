@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
+import { AuthProvider } from '@/components/providers/AuthProvider'
 import { Toaster } from '@/components/ui/sonner'
+import { RouteGuard } from '@/components/auth/RouteGuard'
 import './globals.css'
 
 const jakarta = Plus_Jakarta_Sans({
@@ -59,8 +61,12 @@ export default function RootLayout ({
         className={`${jakarta.variable} ${jetbrains.variable} font-sans min-h-screen`}
       >
         <ThemeProvider>
-          {children}
-          <Toaster position="bottom-right" richColors />
+          <AuthProvider>
+            <RouteGuard>
+              {children}
+            </RouteGuard>
+            <Toaster position="bottom-right" richColors />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
