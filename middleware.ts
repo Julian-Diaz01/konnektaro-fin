@@ -1,15 +1,11 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Routes that require authentication
 const protectedRoutes = ['/dashboard']
-
-// Routes that should redirect to dashboard if already authenticated
 const authRoutes = ['/login', '/register']
 
 export function middleware (request: NextRequest) {
   const { pathname } = request.nextUrl
-
   const authToken = request.cookies.get('auth-token')?.value
   const isAuthenticated = !!authToken
 
