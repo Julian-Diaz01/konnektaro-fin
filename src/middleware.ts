@@ -9,21 +9,12 @@ const protectedRoutes = ['/dashboard', '/portfolio', '/stocks']
 // Routes that should redirect to dashboard if user is already authenticated
 const authRoutes = ['/login', '/register', '/']
 
-// Public routes that don't require authentication
-const publicRoutes = ['/', '/api']
-
 function isProtectedRoute (pathname: string): boolean {
   return protectedRoutes.some(route => pathname.startsWith(route))
 }
 
 function isAuthRoute (pathname: string): boolean {
   return authRoutes.some(route => pathname.startsWith(route))
-}
-
-function isPublicRoute (pathname: string): boolean {
-  return publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(`${route}/`)
-  )
 }
 
 export function middleware (request: NextRequest) {
