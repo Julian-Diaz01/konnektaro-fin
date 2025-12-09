@@ -23,36 +23,54 @@ export interface StockData {
   historical: HistoricalDataPoint[]
 }
 
-// Twelve Data API response types
-export interface TwelveDataQuote {
+// Yahoo Finance API response types
+export interface YahooQuoteResult {
   symbol: string
-  name: string
-  close: string
-  previous_close: string
-  change: string
-  percent_change: string
+  shortName?: string
+  longName?: string
+  regularMarketPrice: number
+  regularMarketChange: number
+  regularMarketChangePercent: number
+  regularMarketPreviousClose: number
 }
 
-export interface TwelveDataTimeSeriesValue {
-  datetime: string
-  open: string
-  high: string
-  low: string
-  close: string
-  volume: string
-}
-
-export interface TwelveDataTimeSeries {
-  meta: {
-    symbol: string
+export interface YahooQuoteResponse {
+  quoteResponse: {
+    result: YahooQuoteResult[]
+    error: string | null
   }
-  values: TwelveDataTimeSeriesValue[]
-  status?: string
-  message?: string
+}
+
+export interface YahooChartMeta {
+  symbol: string
+  regularMarketPrice: number
+  previousClose: number
+}
+
+export interface YahooChartIndicators {
+  quote: Array<{
+    close: (number | null)[]
+    open: (number | null)[]
+    high: (number | null)[]
+    low: (number | null)[]
+    volume: (number | null)[]
+  }>
+}
+
+export interface YahooChartResult {
+  meta: YahooChartMeta
+  timestamp: number[]
+  indicators: YahooChartIndicators
+}
+
+export interface YahooChartResponse {
+  chart: {
+    result: YahooChartResult[] | null
+    error: { code: string; description: string } | null
+  }
 }
 
 export interface PeriodConfig {
   interval: string
-  outputsize: number
+  range: string
 }
-
