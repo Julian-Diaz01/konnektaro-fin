@@ -4,7 +4,6 @@ import { Wallet, TrendingUp, TrendingDown, Target } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PageLayout } from '@/components/layout'
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 
 // Placeholder data for UI demonstration
 const stats = [
@@ -48,8 +47,7 @@ const recentTransactions = [
 
 export default function DashboardPage () {
   return (
-    <ProtectedRoute>
-      <PageLayout>
+    <PageLayout>
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Welcome back! 👋</h1>
@@ -111,6 +109,5 @@ export default function DashboardPage () {
           </CardContent>
         </Card>
       </PageLayout>
-    </ProtectedRoute>
   )
 }

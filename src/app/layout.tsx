@@ -4,7 +4,6 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { QueryProvider } from '@/components/providers/QueryProvider'
 import { Toaster } from '@/components/ui/sonner'
-import { RouteGuard } from '@/components/auth/RouteGuard'
 import './globals.css'
 
 const jakarta = Plus_Jakarta_Sans({
@@ -64,9 +63,7 @@ export default function RootLayout ({
         <ThemeProvider>
           <QueryProvider>
             <AuthProvider>
-              <RouteGuard>
-                {children}
-              </RouteGuard>
+              {children}
               <Toaster position="bottom-right" richColors />
             </AuthProvider>
           </QueryProvider>
