@@ -1,77 +1,76 @@
-import { PeriodConfig, TimePeriod, TwelveDataQuote, TwelveDataTimeSeries } from "@/types/stocks"
-
-const TWELVE_DATA_BASE_URL = 'https://api.twelvedata.com'
+import { PeriodConfig, TimePeriod } from '@/types/stocks'
 
 function getPeriodConfig (period: TimePeriod): PeriodConfig {
-  const now = new Date()
-  const startOfYear = new Date(now.getFullYear(), 0, 1)
-  const daysSinceYearStart = Math.ceil((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24))
-
   switch (period) {
     case '1D':
-      return { interval: '5min', outputsize: 78 }
+      return { interval: '5m', range: '1d' }
     case '5D':
-      return { interval: '1h', outputsize: 35 }
+      return { interval: '1h', range: '5d' }
     case '1M':
-      return { interval: '1day', outputsize: 22 }
+      return { interval: '1d', range: '1mo' }
     case '6M':
-      return { interval: '1day', outputsize: 130 }
+      return { interval: '1d', range: '6mo' }
     case 'YTD':
-      return { interval: '1day', outputsize: daysSinceYearStart }
+      return { interval: '1d', range: 'ytd' }
     case '1Y':
-      return { interval: '1day', outputsize: 365 }
+      return { interval: '1d', range: '1y' }
     default:
-      return { interval: '1day', outputsize: 30 }
+      return { interval: '1d', range: '1mo' }
   }
 }
 
-function getApiKey (): string {
-  const apiKey = process.env.NEXT_PUBLIC_TWELVE_DATA_API_KEY
-  if (!apiKey) {
-    throw new Error('NEXT_PUBLIC_TWELVE_DATA_API_KEY is not configured')
-  }
-  return apiKey
+interface QuoteResult {
+  symbol: string
+  regularMarketPrice?: number
+  regularMarketChange?: number
+  regularMarketChangePercent?: number
 }
 
-async function fetchQuote (symbol: string, apiKey: string): Promise<TwelveDataQuote> {
-  const response = await fetch(
-    `${TWELVE_DATA_BASE_URL}/quote?symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}`
-  )
+async function fetchQuotes (symbols: string[]): Promise<QuoteResult[]> {
+  const symbolsParam = symbols.join(',')
+  const response = await fetch(`/api/stocks/quotes?symbols=${encodeURIComponent(symbolsParam)}`)
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch quote for ${symbol}`)
+    throw new Error(`Failed to fetch quotes: ${response.status}`)
   }
 
   const data = await response.json()
 
-  if (data.status === 'error') {
-    throw new Error(data.message || `Failed to fetch quote for ${symbol}`)
+  if (data.error) {
+    throw new Error(data.error)
   }
 
-  return data
+  return data.quotes || []
 }
 
-async function fetchTimeSeries (
+interface ChartResult {
+  timestamp: number[]
+  closes: (number | null)[]
+}
+
+async function fetchChart (
   symbol: string,
-  apiKey: string,
   interval: string,
-  outputsize: number
-): Promise<TwelveDataTimeSeries> {
+  range: string
+): Promise<ChartResult> {
   const response = await fetch(
-    `${TWELVE_DATA_BASE_URL}/time_series?symbol=${encodeURIComponent(symbol)}&interval=${interval}&outputsize=${outputsize}&apikey=${apiKey}`
+    `/api/stocks/chart?symbol=${encodeURIComponent(symbol)}&interval=${interval}&range=${range}`
   )
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch time series for ${symbol}`)
+    throw new Error(`Failed to fetch chart: ${response.status}`)
   }
 
   const data = await response.json()
 
-  if (data.status === 'error') {
-    throw new Error(data.message || `Failed to fetch time series for ${symbol}`)
+  if (data.error) {
+    throw new Error(data.error)
   }
 
-  return data
+  return {
+    timestamp: data.timestamp || [],
+    closes: data.closes || []
+  }
 }
 
-export { getPeriodConfig, getApiKey, fetchQuote, fetchTimeSeries }
+export { getPeriodConfig, fetchQuotes, fetchChart }

@@ -1,65 +1,82 @@
 import type {
   TimePeriod,
   StockQuote,
-  HistoricalDataPoint,
+  HistoricalDataPoint
 } from '@/types/stocks'
-import { getApiKey, fetchQuote, getPeriodConfig, fetchTimeSeries } from '@/app/api/stocksApi'
-
+import { fetchQuotes, getPeriodConfig, fetchChart } from '@/app/api/stocksApi'
 
 export async function fetchStockQuotes (symbols: string[]): Promise<StockQuote[]> {
-  const apiKey = getApiKey()
+  // Filter out empty or invalid symbols
+  const validSymbols = symbols.filter(s => s && s.trim().length > 0)
 
-  const results = await Promise.all(
-    symbols.map(async (symbol) => {
-      try {
-        const quoteData = await fetchQuote(symbol, apiKey)
+  if (validSymbols.length === 0) {
+    return []
+  }
+
+  try {
+    const results = await fetchQuotes(validSymbols)
+
+    return validSymbols.map(symbol => {
+      const quote = results.find(r => r.symbol === symbol)
+      if (quote) {
         return {
           symbol,
-          price: parseFloat(quoteData.close) || 0,
-          change: parseFloat(quoteData.change) || 0,
-          changePercent: parseFloat(quoteData.percent_change) || 0
-        }
-      } catch (error) {
-        console.error(`Error fetching quote for ${symbol}:`, error)
-        return {
-          symbol,
-          price: 0,
-          change: 0,
-          changePercent: 0
+          price: quote.regularMarketPrice || 0,
+          change: quote.regularMarketChange || 0,
+          changePercent: quote.regularMarketChangePercent || 0
         }
       }
+      // Return fallback for symbols not found
+      return {
+        symbol,
+        price: 0,
+        change: 0,
+        changePercent: 0
+      }
     })
-  )
-
-  return results
+  } catch (error) {
+    console.error('Error fetching quotes:', error)
+    // Return empty quotes on error
+    return validSymbols.map(symbol => ({
+      symbol,
+      price: 0,
+      change: 0,
+      changePercent: 0
+    }))
+  }
 }
 
 export async function fetchStockHistorical (
   symbols: string[],
   period: TimePeriod
 ): Promise<Record<string, HistoricalDataPoint[]>> {
-  const apiKey = getApiKey()
   const config = getPeriodConfig(period)
-
   const results: Record<string, HistoricalDataPoint[]> = {}
 
   await Promise.all(
     symbols.map(async (symbol) => {
       try {
-        const timeSeriesData = await fetchTimeSeries(
-          symbol,
-          apiKey,
-          config.interval,
-          config.outputsize
-        )
+        const chartData = await fetchChart(symbol, config.interval, config.range)
 
-        const historical: HistoricalDataPoint[] = (timeSeriesData.values ?? [])
-          .map(v => ({
-            date: v.datetime,
-            price: parseFloat(v.close)
-          }))
-          .filter(h => !isNaN(h.price))
-          .reverse()
+        if (!chartData.timestamp || chartData.timestamp.length === 0) {
+          results[symbol] = []
+          return
+        }
+
+        const historical: HistoricalDataPoint[] = chartData.timestamp
+          .map((ts, idx) => {
+            const closePrice = chartData.closes[idx]
+            if (closePrice === null || closePrice === undefined) return null
+
+            const date = new Date(ts * 1000)
+            const dateStr = date.toISOString().split('T')[0]
+
+            return {
+              date: dateStr,
+              price: closePrice
+            }
+          })
+          .filter((h): h is HistoricalDataPoint => h !== null)
 
         results[symbol] = historical
       } catch (error) {
