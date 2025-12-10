@@ -14,7 +14,9 @@ function isProtectedRoute (pathname: string): boolean {
 }
 
 function isAuthRoute (pathname: string): boolean {
-  return authRoutes.some(route => pathname.startsWith(route))
+  return authRoutes.some(route => 
+    route === '/' ? pathname === '/' : pathname.startsWith(route)
+  )
 }
 
 export function middleware (request: NextRequest) {
