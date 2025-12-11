@@ -1,5 +1,7 @@
 import { PeriodConfig, TimePeriod } from '@/types/stocks'
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4040'
+
 function getPeriodConfig (period: TimePeriod): PeriodConfig {
   switch (period) {
     case '1D':
@@ -28,7 +30,7 @@ interface QuoteResult {
 
 async function fetchQuotes (symbols: string[]): Promise<QuoteResult[]> {
   const symbolsParam = symbols.join(',')
-  const response = await fetch(`/api/stocks/quotes?symbols=${encodeURIComponent(symbolsParam)}`)
+  const response = await fetch(`${BACKEND_URL}/api/stocks/quotes?symbols=${encodeURIComponent(symbolsParam)}`)
 
   if (!response.ok) {
     throw new Error(`Failed to fetch quotes: ${response.status}`)
@@ -54,7 +56,7 @@ async function fetchChart (
   range: string
 ): Promise<ChartResult> {
   const response = await fetch(
-    `/api/stocks/chart?symbol=${encodeURIComponent(symbol)}&interval=${interval}&range=${range}`
+    `${BACKEND_URL}/api/stocks/chart?symbol=${encodeURIComponent(symbol)}&interval=${interval}&range=${range}`
   )
 
   if (!response.ok) {
