@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Clock } from 'lucide-react'
 import { usePortfolio } from '@/hooks/usePortfolio'
 import { HoldingsTable, SummaryCards, PortfolioChart } from './components'
 import { Activity } from 'react'
@@ -27,11 +27,21 @@ export function Portfolio ({ showChart = false }: PortfolioProps) {
 
   return (
     <div className="space-y-6">
+      <DataDelayNotice />
       <SummaryCards summary={summary} />
       <Activity mode={showChart ? 'visible' : 'hidden'} >
         <PortfolioChart holdings={holdings} />
       </Activity>
       <HoldingsTable holdings={holdings} />
+    </div>
+  )
+}
+
+function DataDelayNotice () {
+  return (
+    <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
+      <Clock className="h-3 w-3" />
+      <span>Market data is delayed by up to 15 minutes. Not real-time.</span>
     </div>
   )
 }
