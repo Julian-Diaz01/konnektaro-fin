@@ -14,7 +14,7 @@ function isProtectedRoute (pathname: string): boolean {
 }
 
 function isAuthRoute (pathname: string): boolean {
-  return authRoutes.some(route => 
+  return authRoutes.some(route =>
     route === '/' ? pathname === '/' : pathname.startsWith(route)
   )
 }
@@ -45,8 +45,8 @@ export function proxy (request: NextRequest) {
   // Redirect authenticated users from auth routes to dashboard
   if (isAuthRoute(pathname) && isAuthenticated) {
     const callbackUrl = request.nextUrl.searchParams.get('callbackUrl')
-    const redirectUrl = callbackUrl && callbackUrl.startsWith('/') 
-      ? callbackUrl 
+    const redirectUrl = callbackUrl && callbackUrl.startsWith('/')
+      ? callbackUrl
       : '/dashboard'
     return NextResponse.redirect(new URL(redirectUrl, request.url))
   }
@@ -67,4 +67,3 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*$).*)'
   ]
 }
-

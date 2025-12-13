@@ -20,4 +20,3 @@ export function usePortfolio () {
     refetch: query.refetch
   }
 }
-

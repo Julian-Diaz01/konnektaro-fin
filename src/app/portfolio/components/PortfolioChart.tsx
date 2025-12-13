@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import * as d3 from 'd3'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,8 +26,8 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M')
   const chartRef = useRef<HTMLDivElement>(null)
 
-  const symbols = holdings.map(h => h.symbol)
-  const holdingsMap = new Map(holdings.map(h => [h.symbol, h]))
+  const symbols = useMemo(() => holdings.map(h => h.symbol), [holdings])
+  const holdingsMap = useMemo(() => new Map(holdings.map(h => [h.symbol, h])), [holdings])
 
   const historicalQuery = useQuery({
     queryKey: ['portfolioHistorical', symbols, selectedPeriod],

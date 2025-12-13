@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, startTransition } from 'react'
 import { useTheme } from 'next-themes'
 import { Moon, Sun, Monitor } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,9 @@ export function ThemeToggle () {
   const { theme, setTheme, resolvedTheme } = useTheme()
 
   useEffect(() => {
-    setMounted(true)
+    startTransition(() => {
+      setMounted(true)
+    })
   }, [])
 
   const displayTheme = resolvedTheme ?? theme

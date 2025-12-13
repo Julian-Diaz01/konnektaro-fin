@@ -30,7 +30,7 @@ export async function parsePortfolioCSV (): Promise<PortfolioPosition[]> {
     // Skip if no purchase data
     if (!tradeDateRaw || !purchasePrice || !quantity) continue
 
-    // Parse date from YYYYMMDD to DD/MM/YYYY 
+    // Parse date from YYYYMMDD to DD/MM/YYYY
     const tradeDate = `${tradeDateRaw.slice(6, 8)}/${tradeDateRaw.slice(4, 6)}/${tradeDateRaw.slice(0, 4)}`
 
     positions.push({
@@ -133,4 +133,3 @@ export async function fetchPortfolioData (): Promise<{
 
   return { positions, holdings, summary }
 }
-
