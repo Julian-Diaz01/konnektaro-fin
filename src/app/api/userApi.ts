@@ -1,18 +1,18 @@
-import { api } from "@/lib/apiClient"
-import { UserProfile } from "@/models/user"
+import { api } from '@/lib/apiClient'
+import { UserProfile } from '@/models/user'
 
 const createUserProfile = async () => {
-    try {
-      const response = await api.post('/api/users/me')
-      if (!response || !response.data) {
-        console.error('No data returned from user profile creation')
-        return
-      }
-      console.log(response.data)
-    } catch (err) {
-      console.error('Failed to create user profile', err)
+  try {
+    const response = await api.post('/api/users/me')
+    if (!response || !response.data) {
+      console.error('No data returned from user profile creation')
+      return
     }
+    console.log(response.data)
+  } catch (err) {
+    console.error('Failed to create user profile', err)
   }
+}
 
 const getUserProfile = async () => {
   try {
@@ -39,6 +39,5 @@ const updateUserProfile = async (userProfile: UserProfile) => {
     console.error('Failed to update user profile', err)
   }
 }
-
 
 export { createUserProfile, getUserProfile, updateUserProfile }

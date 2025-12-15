@@ -5,10 +5,10 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:404
 
 interface CrudRequestOptions {
   auth?: boolean
-  params?: Record<string, any>
+  params?: Record<string, unknown>
 }
 
-interface CrudService<TData = any, TId = string | number> {
+interface CrudService<TData = unknown, TId = string | number> {
   getAll: (options?: CrudRequestOptions) => Promise<TData[]>
   getOne: (id: TId, options?: CrudRequestOptions) => Promise<TData>
   create: (payload: Partial<TData>, options?: CrudRequestOptions) => Promise<TData>
@@ -26,33 +26,33 @@ const api = axios.create({
 })
 
 api.interceptors.request.use(
-    async (config) => {
-      const authConfig = config as typeof config & { skipAuth?: boolean }
-  
-      if (authConfig.skipAuth) {
-        return config
-      }
-  
-      const auth = getAuth()
-      const user = auth.currentUser
-  
-      if (!user) {
-        return config
-      }
-  
-      // getIdToken(true) forces refresh if expired
-      const token = await user.getIdToken()
-  
-      if (!config.headers) {
-        config.headers = {} as AxiosRequestHeaders
-      }
-  
-      config.headers.Authorization = `Bearer ${token}`
-  
+  async (config) => {
+    const authConfig = config as typeof config & { skipAuth?: boolean }
+
+    if (authConfig.skipAuth) {
       return config
-    },
-    (error) => Promise.reject(error)
-  )
+    }
+
+    const auth = getAuth()
+    const user = auth.currentUser
+
+    if (!user) {
+      return config
+    }
+
+    // getIdToken(true) forces refresh if expired
+    const token = await user.getIdToken()
+
+    if (!config.headers) {
+      config.headers = {} as AxiosRequestHeaders
+    }
+
+    config.headers.Authorization = `Bearer ${token}`
+
+    return config
+  },
+  (error) => Promise.reject(error)
+)
 
 api.interceptors.response.use(
   (response) => response,
@@ -65,10 +65,10 @@ api.interceptors.response.use(
   }
 )
 
-export function createCrudService<TData = any, TId = string | number> (
+export function createCrudService<TData = unknown, TId = string | number> (
   basePath: string
 ): CrudService<TData, TId> {
-  function buildConfig (options?: CrudRequestOptions): AuthAwareConfig & { params?: Record<string, any> } {
+  function buildConfig (options?: CrudRequestOptions): AuthAwareConfig & { params?: Record<string, unknown> } {
     const auth = options?.auth ?? true
 
     return {
@@ -116,5 +116,3 @@ export function createCrudService<TData = any, TId = string | number> (
 }
 
 export { api }
-
-
