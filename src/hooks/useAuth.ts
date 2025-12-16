@@ -11,6 +11,7 @@ import {
 } from '@/lib/firebase'
 import { useAuthStore } from '@/stores/authStore'
 import { removeAuthCookie } from '@/lib/cookies'
+import { useUserStore } from '@/stores/userStore'
 
 function getCallbackUrl (): string {
   if (typeof window === 'undefined') return '/dashboard'
@@ -21,7 +22,7 @@ function getCallbackUrl (): string {
 
 export function useAuth () {
   const router = useRouter()
-  const { user, isLoading, isAuthenticated, logout: clearAuth } = useAuthStore()
+  const { firebaseUser, isAuthLoading, isAuthenticated, logout: clearAuth } = useAuthStore()
 
   const getRedirectUrl = useCallback(() => {
     return getCallbackUrl()
@@ -68,6 +69,8 @@ export function useAuth () {
       await signOut()
       removeAuthCookie()
       clearAuth()
+      const { setUser: clearUserProfile } = useUserStore.getState()
+      clearUserProfile(null)
       toast.success('Signed out successfully')
       router.push('/')
     } catch (error) {
@@ -78,8 +81,8 @@ export function useAuth () {
   }, [router, clearAuth])
 
   return {
-    user,
-    isLoading,
+    firebaseUser,
+    isAuthLoading,
     isAuthenticated,
     login,
     register,
