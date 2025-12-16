@@ -3,33 +3,39 @@
 import { useEffect, type ReactNode } from 'react'
 import { subscribeToAuthChanges } from '@/lib/firebase'
 import { useAuthStore } from '@/stores/authStore'
+import { useUserStore } from '@/stores/userStore'
 import { setAuthCookie, removeAuthCookie } from '@/lib/cookies'
+import { syncUserProfile } from '@/lib/userManagemenent'
 
 interface AuthProviderProps {
   children: ReactNode
 }
 
 export function AuthProvider ({ children }: AuthProviderProps) {
-  const { setUser } = useAuthStore()
+  const { setFirebaseUser } = useAuthStore()
+  const { setUser: clearUserProfile } = useUserStore()
 
   useEffect(() => {
-    const unsubscribe = subscribeToAuthChanges(async (user) => {
-      if (user) {
+    const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
+      if (firebaseUser) {
         try {
-          const token = await user.getIdToken()
+          const token = await firebaseUser.getIdToken()
           setAuthCookie(token)
+
+          await syncUserProfile()
         } catch (error) {
-          console.error('Failed to get auth token:', error)
+          console.error('Failed to get auth token or user profile:', error)
         }
       } else {
         removeAuthCookie()
+        clearUserProfile(null)
       }
 
-      setUser(user)
+      setFirebaseUser(firebaseUser)
     })
 
     return () => unsubscribe()
-  }, [setUser])
+  }, [setFirebaseUser, clearUserProfile])
 
   return <>{children}</>
 }
