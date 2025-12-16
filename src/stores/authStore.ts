@@ -1,12 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { User } from '@/lib/firebase'
+import type { User as FirebaseUser } from '@/lib/firebase'
 
 interface AuthState {
-  user: User | null
-  isLoading: boolean
+  firebaseUser: FirebaseUser | null
+  isAuthLoading: boolean
   isAuthenticated: boolean
-  setUser: (user: User | null) => void
+  setFirebaseUser: (user: FirebaseUser | null) => void
   setLoading: (loading: boolean) => void
   logout: () => void
 }
@@ -14,19 +14,19 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: null,
-      isLoading: true,
+      firebaseUser: null,
+      isAuthLoading: true,
       isAuthenticated: false,
-      setUser: (user) => set({
-        user,
-        isAuthenticated: !!user,
-        isLoading: false
+      setFirebaseUser: (firebaseUser) => set({
+        firebaseUser: firebaseUser,
+        isAuthenticated: !!firebaseUser,
+        isAuthLoading: false
       }),
-      setLoading: (isLoading) => set({ isLoading }),
+      setLoading: (isAuthLoading) => set({ isAuthLoading }),
       logout: () => set({
-        user: null,
+        firebaseUser: null,
         isAuthenticated: false,
-        isLoading: false
+        isAuthLoading: false
       })
     }),
     {
