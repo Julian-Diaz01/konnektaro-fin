@@ -15,5 +15,3 @@ export interface CreateUserStockInput {
   purchasePrice?: number | null
   purchaseDate?: string | null
 }
-
-

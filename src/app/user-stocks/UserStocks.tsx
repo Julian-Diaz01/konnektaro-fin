@@ -285,5 +285,3 @@ function HoldingsStatusTable ({
     </Card>
   )
 }
-
-

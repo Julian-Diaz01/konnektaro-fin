@@ -30,5 +30,3 @@ export async function addStockToPortfolio (payload: CreateUserStockInput): Promi
 export async function deletePortfolioStock (id: string): Promise<void> {
   await api.delete(`/api/portfolio/stocks/${id}`)
 }
-
-

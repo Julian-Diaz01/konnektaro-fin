@@ -51,5 +51,3 @@ export async function fetchUserStocksData (): Promise<{
 
   return { stocks, stocksWithStatus }
 }
-
-

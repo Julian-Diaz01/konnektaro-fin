@@ -19,5 +19,3 @@ export function useUserStocks () {
     refetch: query.refetch
   }
 }
-
-
