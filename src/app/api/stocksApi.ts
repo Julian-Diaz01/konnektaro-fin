@@ -1,6 +1,5 @@
 import { PeriodConfig, TimePeriod } from '@/types/stocks'
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4040'
+import { api } from '@/lib/apiClient'
 
 function getPeriodConfig (period: TimePeriod): PeriodConfig {
   switch (period) {
@@ -30,19 +29,17 @@ interface QuoteResult {
 
 async function fetchQuotes (symbols: string[]): Promise<QuoteResult[]> {
   const symbolsParam = symbols.join(',')
-  const response = await fetch(`${BACKEND_URL}/api/stocks/quotes?symbols=${encodeURIComponent(symbolsParam)}`)
+  const response = await api.get('/api/market-data/stocks/quotes', {
+    params: { symbols: symbolsParam }
+  })
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch quotes: ${response.status}`)
-  }
+  const data = response.data as { quotes?: QuoteResult[]; error?: string }
 
-  const data = await response.json()
-
-  if (data.error) {
+  if (data?.error) {
     throw new Error(data.error)
   }
 
-  return data.quotes || []
+  return data?.quotes ?? []
 }
 
 interface ChartResult {
@@ -55,23 +52,19 @@ async function fetchChart (
   interval: string,
   range: string
 ): Promise<ChartResult> {
-  const response = await fetch(
-    `${BACKEND_URL}/api/stocks/chart?symbol=${encodeURIComponent(symbol)}&interval=${interval}&range=${range}`
-  )
+  const response = await api.get('/api/market-data/stocks/chart', {
+    params: { symbol, interval, range }
+  })
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch chart: ${response.status}`)
-  }
+  const data = response.data as { timestamp?: number[]; closes?: (number | null)[]; error?: string }
 
-  const data = await response.json()
-
-  if (data.error) {
+  if (data?.error) {
     throw new Error(data.error)
   }
 
   return {
-    timestamp: data.timestamp || [],
-    closes: data.closes || []
+    timestamp: data?.timestamp ?? [],
+    closes: data?.closes ?? []
   }
 }
 
