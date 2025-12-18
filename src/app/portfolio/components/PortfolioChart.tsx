@@ -10,6 +10,7 @@ import { fetchStockHistorical } from '@/lib/stocks'
 import type { PortfolioHolding } from '@/types/portfolio'
 import type { TimePeriod } from '@/types/stocks'
 import { formatCurrency } from './utils'
+import { useAuthStore } from '@/stores/authStore'
 
 const TIME_PERIODS: { value: TimePeriod; label: string }[] = [
   { value: '1M', label: '1M' },
@@ -25,6 +26,7 @@ interface PortfolioChartProps {
 export function PortfolioChart ({ holdings }: PortfolioChartProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M')
   const chartRef = useRef<HTMLDivElement>(null)
+  const { isAuthenticated, isAuthLoading } = useAuthStore()
 
   const symbols = useMemo(() => holdings.map(h => h.symbol), [holdings])
   const holdingsMap = useMemo(() => new Map(holdings.map(h => [h.symbol, h])), [holdings])
@@ -32,7 +34,7 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
   const historicalQuery = useQuery({
     queryKey: ['portfolioHistorical', symbols, selectedPeriod],
     queryFn: () => fetchStockHistorical(symbols, selectedPeriod),
-    enabled: symbols.length > 0,
+    enabled: symbols.length > 0 && isAuthenticated && !isAuthLoading,
     staleTime: 60 * 60 * 1000,
     gcTime: 2 * 60 * 60 * 1000
   })

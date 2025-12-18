@@ -12,8 +12,8 @@ import { useUserStocks } from '@/hooks/useUserStocks'
 import type { CreateUserStockInput, UserStock } from '@/types/userStocks'
 import { deletePortfolioStock, addStockToPortfolio } from '@/app/api/portfolioStocksApi'
 import { formatCurrency } from '@/lib/format'
-import { SummaryCards, PortfolioChart } from '@/app/portfolio/components'
-import type { PortfolioSummary, PortfolioHolding, PortfolioPosition } from '@/types/portfolio'
+import type { PortfolioSummary } from '@/types/portfolio'
+import { SummaryCards } from '../portfolio/components'
 
 export function UserStocks () {
   const queryClient = useQueryClient()
@@ -49,42 +49,6 @@ export function UserStocks () {
     }
   }, [stocksWithStatus])
 
-  const holdings = useMemo((): PortfolioHolding[] => {
-    return stocksWithStatus.map(({ stock, quote, avgCost, totalCost, marketValue, gainLoss, gainLossPercent, dayChangeValue }) => {
-      const currentPrice = quote?.price ?? 0
-      const dayChangePercent = quote?.changePercent ?? 0
-      const avgCostValue = avgCost ?? 0
-      const totalCostValue = totalCost ?? 0
-      const unrealizedGain = gainLoss ?? 0
-      const unrealizedGainPercent = gainLossPercent ?? 0
-      
-      // Ensure tradeDate is always a string
-      const tradeDate = stock.purchaseDate || new Date().toISOString().split('T')[0]
-      
-      const position: PortfolioPosition = {
-        symbol: stock.symbol,
-        tradeDate: String(tradeDate),
-        purchasePrice: avgCostValue,
-        quantity: stock.quantity,
-        commission: 0
-      }
-
-      return {
-        symbol: stock.symbol,
-        positions: [position],
-        totalQuantity: stock.quantity,
-        avgCost: avgCostValue,
-        totalCost: totalCostValue,
-        currentPrice,
-        currentValue: marketValue,
-        unrealizedGain,
-        unrealizedGainPercent,
-        dayChange: dayChangeValue,
-        dayChangePercent
-      }
-    })
-  }, [stocksWithStatus])
-
   if (isLoading) {
     return (
       <Card>
@@ -112,8 +76,6 @@ export function UserStocks () {
       <DataDelayNotice />
 
       {summary && <SummaryCards summary={summary} />}
-
-      {holdings.length > 0 && <PortfolioChart holdings={holdings} />}
 
       <UpsertStockForm
         onSubmit={async (payload) => {
