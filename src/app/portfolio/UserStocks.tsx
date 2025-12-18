@@ -12,8 +12,8 @@ import { useUserStocks } from '@/hooks/useUserStocks'
 import type { CreateUserStockInput, UserStock } from '@/types/userStocks'
 import { deletePortfolioStock, addStockToPortfolio } from '@/app/api/portfolioStocksApi'
 import { formatCurrency } from '@/lib/format'
-import { SummaryCards, PortfolioChart } from '@/app/portfolio/components'
-import type { PortfolioSummary, PortfolioHolding, PortfolioPosition } from '@/types/portfolio'
+import { SummaryCards } from '@/app/portfolio/components'
+import type { PortfolioSummary } from '@/types/portfolio'
 
 export function UserStocks () {
   const queryClient = useQueryClient()
@@ -49,7 +49,7 @@ export function UserStocks () {
     }
   }, [stocksWithStatus])
 
-  const holdings = useMemo((): PortfolioHolding[] => {
+  /* const holdings = useMemo((): PortfolioHolding[] => {
     return stocksWithStatus.map(({ stock, quote, avgCost, totalCost, marketValue, gainLoss, gainLossPercent, dayChangeValue }) => {
       const currentPrice = quote?.price ?? 0
       const dayChangePercent = quote?.changePercent ?? 0
@@ -83,7 +83,7 @@ export function UserStocks () {
         dayChangePercent
       }
     })
-  }, [stocksWithStatus])
+ }, [stocksWithStatus]) */
 
   if (isLoading) {
     return (
@@ -113,7 +113,7 @@ export function UserStocks () {
 
       {summary && <SummaryCards summary={summary} />}
 
-      {holdings.length > 0 && <PortfolioChart holdings={holdings} />}
+      { /* holdings.length > 0 && <PortfolioChart holdings={holdings} /> */}
 
       <UpsertStockForm
         onSubmit={async (payload) => {

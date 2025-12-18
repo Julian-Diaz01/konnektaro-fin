@@ -1,7 +1,7 @@
 'use client'
 
 import { PageLayout } from '@/components/layout'
-import { Portfolio } from './Portfolio'
+import { UserStocks } from './UserStocks'
 
 export default function PortfolioPage () {
   return (
@@ -9,10 +9,10 @@ export default function PortfolioPage () {
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Portfolio</h1>
-          <p className="text-muted-foreground">Track your investments and performance</p>
+          <p className="text-muted-foreground">Manage your holdings and view current market status</p>
         </div>
 
-        <Portfolio />
+        <UserStocks />
       </div>
     </PageLayout>
   )

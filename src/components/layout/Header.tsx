@@ -9,8 +9,7 @@ import { cn } from '@/lib/utils'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard' },
-  { name: 'Portfolio', href: '/portfolio' },
-  { name: 'User Stocks', href: '/user-stocks' }
+  { name: 'Portfolio', href: '/portfolio' }
 ]
 
 export function Header () {
