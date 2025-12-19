@@ -29,14 +29,14 @@ export function UserStocks () {
     const totalGain = totalValue - totalCost
     const totalGainPercent = totalCost !== 0 ? (totalGain / totalCost) * 100 : 0
     const dayChange = stocksWithStatus.reduce((sum, s) => sum + s.dayChangeValue, 0)
-    
+
     // Calculate weighted day change percent based on market values
-    const dayChangePercent = totalValue !== 0 
+    const dayChangePercent = totalValue !== 0
       ? stocksWithStatus.reduce((sum, s) => {
-          const weight = s.marketValue / totalValue
-          const stockDayChangePercent = s.quote?.changePercent ?? 0
-          return sum + (weight * stockDayChangePercent)
-        }, 0)
+        const weight = s.marketValue / totalValue
+        const stockDayChangePercent = s.quote?.changePercent ?? 0
+        return sum + (weight * stockDayChangePercent)
+      }, 0)
       : 0
 
     return {
@@ -57,10 +57,10 @@ export function UserStocks () {
       const totalCostValue = totalCost ?? 0
       const unrealizedGain = gainLoss ?? 0
       const unrealizedGainPercent = gainLossPercent ?? 0
-      
+
       // Ensure tradeDate is always a string
       const tradeDate = stock.purchaseDate || new Date().toISOString().split('T')[0]
-      
+
       const position: PortfolioPosition = {
         symbol: stock.symbol,
         tradeDate: String(tradeDate),
