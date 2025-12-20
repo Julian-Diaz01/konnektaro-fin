@@ -1,5 +1,4 @@
 -- Konnektaro Finance Database Schema
--- Personal Finance App
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
