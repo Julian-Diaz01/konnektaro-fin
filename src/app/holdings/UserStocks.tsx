@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Loader2, Clock, Trash2, Plus } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -121,8 +121,10 @@ export function UserStocks () {
             await addStockToPortfolio(payload)
             toast.success('Saved stock')
             await queryClient.invalidateQueries({ queryKey: ['portfolio-stocks'] })
+            return true
           } catch (e) {
             toast.error(e instanceof Error ? e.message : 'Failed to save stock')
+            return false 
           }
         }}
       />
@@ -155,32 +157,61 @@ function DataDelayNotice () {
 function UpsertStockForm ({
   onSubmit
 }: {
-  onSubmit: (payload: CreateUserStockInput) => Promise<void>
+  onSubmit: (payload: CreateUserStockInput) => Promise<boolean>
 }) {
-  async function handleSubmit (formData: FormData) {
-    const symbol = String(formData.get('symbol') ?? '').trim().toUpperCase()
-    const quantityRaw = String(formData.get('quantity') ?? '').trim()
-    const purchasePriceRaw = String(formData.get('purchasePrice') ?? '').trim()
-    const purchaseDateRaw = String(formData.get('purchaseDate') ?? '').trim()
+  const [symbol, setSymbol] = useState('')
+  const [quantity, setQuantity] = useState('')
+  const [purchasePrice, setPurchasePrice] = useState('')
+  const [purchaseDate, setPurchaseDate] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const quantity = Number(quantityRaw)
-    const purchasePrice = purchasePriceRaw ? Number(purchasePriceRaw) : null
-    const purchaseDate = purchaseDateRaw ? purchaseDateRaw : null
+  const clearForm = () => {
+    setSymbol('')
+    setQuantity('')
+    setPurchasePrice('')
+    setPurchaseDate('')
+  }
 
-    if (!symbol) {
+  async function handleSubmit (e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    
+    const symbolTrimmed = symbol.trim().toUpperCase()
+    const quantityRaw = quantity.trim()
+    const purchasePriceRaw = purchasePrice.trim()
+    const purchaseDateRaw = purchaseDate.trim()
+
+    const quantityNum = Number(quantityRaw)
+    const purchasePriceNum = purchasePriceRaw ? Number(purchasePriceRaw) : null
+    const purchaseDateValue = purchaseDateRaw ? purchaseDateRaw : null
+
+    if (!symbolTrimmed) {
       toast.error('Symbol is required')
       return
     }
-    if (!Number.isFinite(quantity) || quantity < 0) {
+    if (!Number.isFinite(quantityNum) || quantityNum < 0) {
       toast.error('Quantity must be a number >= 0')
       return
     }
-    if (purchasePriceRaw && (!Number.isFinite(purchasePrice as number) || (purchasePrice as number) < 0)) {
+    if (purchasePriceRaw && (!Number.isFinite(purchasePriceNum as number) || (purchasePriceNum as number) < 0)) {
       toast.error('Purchase price must be a number >= 0')
       return
     }
 
-    await onSubmit({ symbol, quantity, purchasePrice, purchaseDate })
+    setIsSubmitting(true)
+    try {
+      const success = await onSubmit({ 
+        symbol: symbolTrimmed, 
+        quantity: quantityNum, 
+        purchasePrice: purchasePriceNum, 
+        purchaseDate: purchaseDateValue 
+      })
+      
+      if (success) {
+        clearForm()
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -196,31 +227,74 @@ function UpsertStockForm ({
       </CardHeader>
       <CardContent>
         <form
-          action={handleSubmit}
+          onSubmit={handleSubmit}
           className="grid gap-4 md:grid-cols-4"
         >
           <div className="grid gap-2">
             <Label htmlFor="symbol">Symbol</Label>
-            <Input id="symbol" name="symbol" placeholder="AAPL" />
+            <Input 
+              id="symbol" 
+              name="symbol" 
+              placeholder="AAPL" 
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="quantity">Quantity</Label>
-            <Input id="quantity" name="quantity" type="number" step="1" min="0" placeholder="10" />
+            <Input 
+              id="quantity" 
+              name="quantity" 
+              type="number" 
+              step="1" 
+              min="0" 
+              placeholder="10" 
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="purchasePrice">Purchase price (optional)</Label>
-            <Input id="purchasePrice" name="purchasePrice" type="number" step="0.01" min="0" placeholder="123.45" />
+            <Input 
+              id="purchasePrice" 
+              name="purchasePrice" 
+              type="number" 
+              step="0.01" 
+              min="0" 
+              placeholder="123.45" 
+              value={purchasePrice}
+              onChange={(e) => setPurchasePrice(e.target.value)}
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="purchaseDate">Purchase date (optional)</Label>
-            <Input id="purchaseDate" name="purchaseDate" type="date" />
+            <Input 
+              id="purchaseDate" 
+              name="purchaseDate" 
+              type="date" 
+              value={purchaseDate}
+              onChange={(e) => setPurchaseDate(e.target.value)}
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="md:col-span-4 flex justify-end">
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
+            </Button>
           </div>
         </form>
       </CardContent>
