@@ -1,7 +1,7 @@
 import axios, { type AxiosRequestHeaders } from 'axios'
 import { getAuth } from 'firebase/auth'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4040'
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 interface CrudRequestOptions {
   auth?: boolean
