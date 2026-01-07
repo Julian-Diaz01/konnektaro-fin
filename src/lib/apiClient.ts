@@ -58,7 +58,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.status === 401) {
-      // Optionally, we could trigger a logout flow here.
+      // we could trigger a logout flow here.
     }
 
     return Promise.reject(error)
