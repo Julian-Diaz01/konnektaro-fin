@@ -7,31 +7,49 @@ import { getAuth } from 'firebase/auth'
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || ''
 
 // Enhanced debugging - runs on both client and helps diagnose Vercel issues
+// Note: NEXT_PUBLIC_* variables are inlined at build time, so Object.keys(process.env)
+// won't show them. We need to check them directly.
 if (typeof window !== 'undefined') {
   const envValue = process.env.NEXT_PUBLIC_BACKEND_URL
-  const allPublicVars = Object.keys(process.env)
-    .filter(k => k.startsWith('NEXT_PUBLIC_'))
-    .reduce((acc, key) => {
-      const value = process.env[key]
-      acc[key] = value ? `✓ Set (${value.substring(0, 20)}...)` : '✗ Not set'
-      return acc
-    }, {} as Record<string, string>)
+  
+  // Check specific known variables (since inlined vars don't show in Object.keys)
+  const firebaseApiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY
+  const firebaseAuthDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+  const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV
   
   console.group('[apiClient] Environment Variable Debug')
-  console.log('NEXT_PUBLIC_BACKEND_URL:', envValue || '❌ NOT SET')
-  console.log('BACKEND_URL constant:', BACKEND_URL || '❌ EMPTY')
-  console.log('All NEXT_PUBLIC_ variables:', allPublicVars)
+  console.log('NEXT_PUBLIC_BACKEND_URL:', envValue ? `✓ Set (${envValue.substring(0, 30)}...)` : '❌ NOT SET')
+  console.log('BACKEND_URL constant:', BACKEND_URL ? `✓ Set (${BACKEND_URL.substring(0, 30)}...)` : '❌ EMPTY')
+  console.log('')
+  console.log('Other NEXT_PUBLIC_ variables (to verify env vars work):')
+  console.log('  NEXT_PUBLIC_FIREBASE_API_KEY:', firebaseApiKey ? '✓ Set' : '✗ Not set')
+  console.log('  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:', firebaseAuthDomain ? `✓ Set (${firebaseAuthDomain})` : '✗ Not set')
+  console.log('  NEXT_PUBLIC_VERCEL_URL:', vercelUrl || 'Not available')
+  console.log('  NEXT_PUBLIC_VERCEL_ENV:', vercelEnv || 'Not available')
+  console.log('')
   console.log('Environment:', process.env.NODE_ENV)
-  console.log('Is client-side:', typeof window !== 'undefined')
   
   if (!envValue) {
+    console.error('')
     console.error('⚠️ NEXT_PUBLIC_BACKEND_URL is missing!')
-    console.error('📋 Checklist:')
-    console.error('  1. Variable name in Vercel: NEXT_PUBLIC_BACKEND_URL (exact match)')
-    console.error('  2. Value is set (not empty)')
-    console.error('  3. Selected for all environments (Production, Preview, Development)')
-    console.error('  4. Redeployed after adding the variable')
-    console.error('  5. Check Vercel build logs to verify variable is available during build')
+    if (firebaseApiKey || firebaseAuthDomain) {
+      console.error('✅ Good news: Other NEXT_PUBLIC_ variables ARE working (Firebase is set)')
+      console.error('   This means env vars are being inlined correctly.')
+      console.error('   The issue is specifically with NEXT_PUBLIC_BACKEND_URL')
+      console.error('')
+      console.error('📋 Check:')
+      console.error('  1. Variable name in Vercel: NEXT_PUBLIC_BACKEND_URL (exact match)')
+      console.error('  2. Value is set (not empty)')
+      console.error('  3. Production environment is checked')
+      console.error('  4. Variable was saved (refresh Vercel page to verify)')
+    } else {
+      console.error('❌ No NEXT_PUBLIC_ variables are working')
+      console.error('   This suggests env vars aren\'t being inlined at build time')
+      console.error('   Check Vercel build logs and environment variable configuration')
+    }
+  } else {
+    console.log('✅ NEXT_PUBLIC_BACKEND_URL is set correctly!')
   }
   console.groupEnd()
 }
