@@ -2,6 +2,10 @@ import axios, { type AxiosRequestHeaders } from 'axios'
 import { getAuth } from 'firebase/auth'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+console.log('BACKEND_URL', BACKEND_URL)
+if (!BACKEND_URL) {
+  throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
+}
 
 interface CrudRequestOptions {
   auth?: boolean
