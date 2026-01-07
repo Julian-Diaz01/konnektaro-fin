@@ -1,12 +1,10 @@
 import axios, { type AxiosRequestHeaders } from 'axios'
 import { getAuth } from 'firebase/auth'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
-
-// Only validate on client side to avoid SSR/build errors
-if (typeof window !== 'undefined' && !BACKEND_URL) {
-  throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
-}
+// Get BACKEND_URL from environment variable
+// NEXT_PUBLIC_* variables are automatically loaded by Next.js from .env files
+// and are inlined at build time for client-side access
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || ''
 
 interface CrudRequestOptions {
   auth?: boolean
@@ -26,15 +24,27 @@ type AuthAwareConfig = {
 }
 
 const api = axios.create({
-  baseURL: BACKEND_URL,
+  baseURL: BACKEND_URL || '',
   withCredentials: true
 })
 
 api.interceptors.request.use(
   async (config) => {
-    // Validate BACKEND_URL when actually making a request (client-side)
-    if (typeof window !== 'undefined' && !BACKEND_URL) {
-      throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
+    // Validate BACKEND_URL when actually making a request (client-side only)
+    if (typeof window !== 'undefined') {
+      const url = process.env.NEXT_PUBLIC_BACKEND_URL || BACKEND_URL
+      
+      if (!url) {
+        const errorMsg = 'NEXT_PUBLIC_BACKEND_URL is not set. Please configure it in Vercel: Settings → Environment Variables → Add NEXT_PUBLIC_BACKEND_URL'
+        console.error('[apiClient]', errorMsg)
+        console.error('[apiClient] Available NEXT_PUBLIC_ vars:', Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC_')))
+        throw new Error(errorMsg)
+      }
+      
+      // Update baseURL if it's different
+      if (config.baseURL !== url) {
+        config.baseURL = url
+      }
     }
 
     const authConfig = config as typeof config & { skipAuth?: boolean }
