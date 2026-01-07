@@ -2,8 +2,9 @@ import axios, { type AxiosRequestHeaders } from 'axios'
 import { getAuth } from 'firebase/auth'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
-console.log('BACKEND_URL', BACKEND_URL)
-if (!BACKEND_URL) {
+
+// Only validate on client side to avoid SSR/build errors
+if (typeof window !== 'undefined' && !BACKEND_URL) {
   throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
 }
 
@@ -31,6 +32,11 @@ const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
+    // Validate BACKEND_URL when actually making a request (client-side)
+    if (typeof window !== 'undefined' && !BACKEND_URL) {
+      throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
+    }
+
     const authConfig = config as typeof config & { skipAuth?: boolean }
 
     if (authConfig.skipAuth) {
