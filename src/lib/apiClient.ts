@@ -6,6 +6,36 @@ import { getAuth } from 'firebase/auth'
 // and are inlined at build time for client-side access
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || ''
 
+// Enhanced debugging - runs on both client and helps diagnose Vercel issues
+if (typeof window !== 'undefined') {
+  const envValue = process.env.NEXT_PUBLIC_BACKEND_URL
+  const allPublicVars = Object.keys(process.env)
+    .filter(k => k.startsWith('NEXT_PUBLIC_'))
+    .reduce((acc, key) => {
+      const value = process.env[key]
+      acc[key] = value ? `✓ Set (${value.substring(0, 20)}...)` : '✗ Not set'
+      return acc
+    }, {} as Record<string, string>)
+  
+  console.group('[apiClient] Environment Variable Debug')
+  console.log('NEXT_PUBLIC_BACKEND_URL:', envValue || '❌ NOT SET')
+  console.log('BACKEND_URL constant:', BACKEND_URL || '❌ EMPTY')
+  console.log('All NEXT_PUBLIC_ variables:', allPublicVars)
+  console.log('Environment:', process.env.NODE_ENV)
+  console.log('Is client-side:', typeof window !== 'undefined')
+  
+  if (!envValue) {
+    console.error('⚠️ NEXT_PUBLIC_BACKEND_URL is missing!')
+    console.error('📋 Checklist:')
+    console.error('  1. Variable name in Vercel: NEXT_PUBLIC_BACKEND_URL (exact match)')
+    console.error('  2. Value is set (not empty)')
+    console.error('  3. Selected for all environments (Production, Preview, Development)')
+    console.error('  4. Redeployed after adding the variable')
+    console.error('  5. Check Vercel build logs to verify variable is available during build')
+  }
+  console.groupEnd()
+}
+
 interface CrudRequestOptions {
   auth?: boolean
   params?: Record<string, unknown>
