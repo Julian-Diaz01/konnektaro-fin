@@ -58,14 +58,30 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
     const sortedDates = Array.from(allDates).sort()
     const portfolioHistory: { date: Date; value: number }[] = []
 
+    // Track last known price for each symbol to handle missing data
+    const lastKnownPrices = new Map<string, number>()
+
     for (const dateStr of sortedDates) {
       let totalValue = 0
       for (const symbol of symbols) {
         const holding = holdingsMap.get(symbol)
+        if (!holding) continue
+
         const data = historicalQuery.data[symbol] ?? []
         const pricePoint = data.find(d => d.date === dateStr)
-        if (pricePoint && holding) {
-          totalValue += pricePoint.price * holding.totalQuantity
+        
+        let price = 0
+        if (pricePoint) {
+          // Update last known price when we find data
+          price = pricePoint.price
+          lastKnownPrices.set(symbol, price)
+        } else {
+          // Use last known price if no data for this date
+          price = lastKnownPrices.get(symbol) ?? 0
+        }
+
+        if (price > 0) {
+          totalValue += price * holding.totalQuantity
         }
       }
       if (totalValue > 0) {
