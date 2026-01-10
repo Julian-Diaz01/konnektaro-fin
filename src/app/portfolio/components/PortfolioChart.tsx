@@ -184,6 +184,121 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
 
     g.selectAll('.domain, .tick line')
       .style('stroke', 'hsl(var(--border))')
+
+    // Tooltip setup
+    const tooltip = d3.select(container)
+      .append('div')
+      .attr('class', 'portfolio-chart-tooltip')
+      .style('position', 'absolute')
+      .style('opacity', 0)
+      .style('pointer-events', 'none')
+      .style('background', 'hsl(var(--card))')
+      .style('border', '1px solid hsl(var(--border))')
+      .style('border-radius', '0.5rem')
+      .style('padding', '0.5rem 0.75rem')
+      .style('box-shadow', '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)')
+      .style('font-size', '0.875rem')
+      .style('z-index', 1000)
+
+    const tooltipDate = tooltip.append('div')
+      .style('color', 'hsl(var(--muted-foreground))')
+      .style('font-size', '0.75rem')
+      .style('margin-bottom', '0.25rem')
+
+    const tooltipValue = tooltip.append('div')
+      .style('color', 'hsl(var(--foreground))')
+      .style('font-weight', '600')
+      .style('font-size', '0.875rem')
+
+    // Vertical line and dot for hover indicator
+    const hoverLine = g.append('line')
+      .attr('stroke', gradientColor)
+      .attr('stroke-width', 1.5)
+      .attr('stroke-dasharray', '4,4')
+      .attr('opacity', 0)
+      .attr('y1', 0)
+      .attr('y2', height)
+
+    const hoverDot = g.append('circle')
+      .attr('r', 4)
+      .attr('fill', gradientColor)
+      .attr('stroke', 'hsl(var(--card))')
+      .attr('stroke-width', 2)
+      .attr('opacity', 0)
+
+    // Create invisible overlay for mouse tracking
+    const overlay = g.append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('fill', 'transparent')
+      .attr('pointer-events', 'all')
+
+    // Use bisector to find closest data point
+    const bisectDate = d3.bisector((d: { date: Date; value: number }) => d.date).left
+
+    overlay
+      .on('mouseover', function () {
+        tooltip.style('opacity', 1)
+        hoverLine.attr('opacity', 0.5)
+        hoverDot.attr('opacity', 1)
+      })
+      .on('mouseout', function () {
+        tooltip.style('opacity', 0)
+        hoverLine.attr('opacity', 0)
+        hoverDot.attr('opacity', 0)
+      })
+      .on('mousemove', function (event) {
+        const mouseX = d3.pointer(event)[0]
+        const invertedDate = xScale.invert(mouseX)
+        const index = bisectDate(portfolioHistory, invertedDate, 1)
+        const a = portfolioHistory[index - 1]
+        const b = portfolioHistory[index]
+
+        if (!a && !b) return
+
+        const point = (() => {
+          if (!b) return a
+          if (!a) return b
+          return invertedDate.getTime() - a.date.getTime() > b.date.getTime() - invertedDate.getTime() ? b : a
+        })()
+
+        if (!point) return
+
+        const xPos = xScale(point.date)
+        const yPos = yScale(point.value)
+
+        // Update tooltip content
+        tooltipDate.text(formatDate(point.date))
+        tooltipValue.text(formatCurrency(point.value))
+
+        // Position tooltip 100px above the dot
+        const tooltipWidth = (tooltip.node() as HTMLElement)?.offsetWidth ?? 0
+        const containerRect = container.getBoundingClientRect()
+
+        let tooltipX = containerRect.left + margin.left + xPos - tooltipWidth / 2
+        const tooltipY = containerRect.top + margin.top + yPos +200
+
+        // Keep tooltip horizontally within bounds
+        if (tooltipX < containerRect.left) {
+          tooltipX = containerRect.left + 10
+        }
+        if (tooltipX + tooltipWidth > containerRect.right) {
+          tooltipX = containerRect.right - tooltipWidth - 10
+        }
+
+        tooltip
+          .style('left', `${tooltipX - containerRect.left}px`)
+          .style('top', `${tooltipY - containerRect.top}px`)
+
+        // Update hover indicator
+        hoverLine
+          .attr('x1', xPos)
+          .attr('x2', xPos)
+
+        hoverDot
+          .attr('cx', xPos)
+          .attr('cy', yPos)
+      })
   }, [historicalQuery.data, symbols, holdingsMap, selectedPeriod])
 
   useEffect(() => {
