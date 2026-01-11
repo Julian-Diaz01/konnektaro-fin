@@ -56,16 +56,36 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
     }
 
     const sortedDates = Array.from(allDates).sort()
+    
+    // Find the earliest initial date across all holdings (portfolio start date)
+    const portfolioStartDate = holdings.length > 0
+      ? holdings
+          .map(h => new Date(h.initialDate))
+          .sort((a, b) => a.getTime() - b.getTime())[0]
+      : null
+
     const portfolioHistory: { date: Date; value: number }[] = []
 
     // Track last known price for each symbol to handle missing data
     const lastKnownPrices = new Map<string, number>()
 
     for (const dateStr of sortedDates) {
+      const currentDate = new Date(dateStr)
+      
+      // Skip dates before portfolio start
+      if (portfolioStartDate && currentDate < portfolioStartDate) continue
+
       let totalValue = 0
       for (const symbol of symbols) {
         const holding = holdingsMap.get(symbol)
         if (!holding) continue
+
+        const holdingInitialDate = new Date(holding.initialDate)
+        
+        // If date is before this holding's initial date, value is 0
+        if (currentDate < holdingInitialDate) {
+          continue
+        }
 
         const data = historicalQuery.data[symbol] ?? []
         const pricePoint = data.find(d => d.date === dateStr)
@@ -84,9 +104,9 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
           totalValue += price * holding.totalQuantity
         }
       }
-      if (totalValue > 0) {
-        portfolioHistory.push({ date: new Date(dateStr), value: totalValue })
-      }
+      
+      // Include all dates from portfolio start, even if value is 0
+      portfolioHistory.push({ date: currentDate, value: totalValue })
     }
 
     if (portfolioHistory.length < 2) return

@@ -14,11 +14,11 @@ export function formatCurrency (amount: number, currency = 'EUR'): string {
 
 export function formatDate (date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date
-  return new Intl.DateTimeFormat('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }).format(d)
+  // Format as DD.MM.YYYY for UI display
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  return `${day}.${month}.${year}`
 }
 
 export function formatRelativeDate (date: Date | string): string {

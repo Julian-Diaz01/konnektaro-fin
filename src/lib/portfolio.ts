@@ -30,8 +30,8 @@ export async function parsePortfolioCSV (): Promise<PortfolioPosition[]> {
     // Skip if no purchase data
     if (!tradeDateRaw || !purchasePrice || !quantity) continue
 
-    // Parse date from YYYYMMDD to DD/MM/YYYY
-    const tradeDate = `${tradeDateRaw.slice(6, 8)}/${tradeDateRaw.slice(4, 6)}/${tradeDateRaw.slice(0, 4)}`
+    // Parse date from YYYYMMDD to ISO format (YYYY-MM-DD)
+    const tradeDate = `${tradeDateRaw.slice(0, 4)}-${tradeDateRaw.slice(4, 6)}-${tradeDateRaw.slice(6, 8)}`
 
     positions.push({
       symbol,
@@ -82,6 +82,14 @@ export function calculateHoldings (
     const unrealizedGain = currentValue - totalCost
     const unrealizedGainPercent = totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0
 
+    // positions is guaranteed to have at least one element since it comes from groupedPositions
+    const sortedDates = positions.map(p => p.tradeDate).sort()
+    const firstDate = sortedDates[0]
+    if (!firstDate) {
+      throw new Error(`No trade dates found for symbol ${symbol}`)
+    }
+    const initialDateStr = firstDate
+
     holdings.push({
       symbol,
       positions,
@@ -93,7 +101,8 @@ export function calculateHoldings (
       unrealizedGain,
       unrealizedGainPercent,
       dayChange: dayChange * totalQuantity,
-      dayChangePercent
+      dayChangePercent,
+      initialDate: initialDateStr
     })
   }
 

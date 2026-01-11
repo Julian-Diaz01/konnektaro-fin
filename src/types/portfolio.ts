@@ -20,6 +20,7 @@ export interface PortfolioHolding {
   unrealizedGainPercent: number
   dayChange: number
   dayChangePercent: number
+  initialDate: string
 }
 
 export interface PortfolioSummary {

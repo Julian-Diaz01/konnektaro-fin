@@ -20,8 +20,11 @@ export default function UserStocksPage () {
       const unrealizedGain = gainLoss ?? 0
       const unrealizedGainPercent = gainLossPercent ?? 0
 
-      // Ensure tradeDate is always a string
-      const tradeDate = stock.purchaseDate || new Date().toISOString().split('T')[0]
+      // Ensure tradeDate is always a string (ISO format YYYY-MM-DD)
+      const todayISO = new Date().toISOString().split('T')[0] as string
+      const tradeDate = stock.purchaseDate ?? todayISO
+      // initialDate is the purchase date (already in YYYY-MM-DD format)
+      const initialDate = stock.purchaseDate ?? todayISO
 
       return {
         symbol: stock.symbol,
@@ -40,7 +43,8 @@ export default function UserStocksPage () {
         unrealizedGain,
         unrealizedGainPercent,
         dayChange: dayChangeValue,
-        dayChangePercent
+        dayChangePercent,
+        initialDate
       }
     })
   }, [stocksWithStatus])
