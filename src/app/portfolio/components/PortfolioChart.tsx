@@ -159,7 +159,6 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
       .line<{ date: Date; value: number }>()
       .x(d => xScale(d.date))
       .y(d => yScale(d.value))
-      .curve(d3.curveCatmullRom.alpha(0.5))
 
     const path = g
       .append('path')
