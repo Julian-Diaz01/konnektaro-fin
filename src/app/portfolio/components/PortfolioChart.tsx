@@ -58,6 +58,15 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
 
     const sortedDates = Array.from(allDates).sort()
 
+    // Flatten all positions from all holdings to handle multiple positions per symbol separately
+    const allPositions = holdings.flatMap(holding =>
+      holding.positions.map(position => ({
+        symbol: position.symbol,
+        quantity: position.quantity,
+        initialDate: new Date(position.tradeDate)
+      }))
+    )
+
     const portfolioHistory: { date: Date; value: number }[] = []
 
     // Track last known price for each symbol to handle missing data
@@ -67,34 +76,31 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
       const currentDate = new Date(dateStr)
 
       let totalValue = 0
-      for (const symbol of symbols) {
-        const holding = holdingsMap.get(symbol)
-        if (!holding) continue
-
-        const holdingInitialDate = new Date(holding.initialDate)
-        
-        // If date is before this holding's initial date, value is 0 (ignore API data)
-        if (currentDate < holdingInitialDate) {
+      // Calculate value contribution from each individual position
+      for (const position of allPositions) {
+        // If date is before this position's initial date, value is 0 (ignore API data)
+        if (currentDate < position.initialDate) {
           // Value is 0 for this position before initial date
           continue
         }
 
         // After initial date, use API data
-        const data = historicalQuery.data[symbol] ?? []
+        const data = historicalQuery.data[position.symbol] ?? []
         const pricePoint = data.find(d => d.date === dateStr)
         
         let price = 0
         if (pricePoint) {
           // Update last known price when we find data
           price = pricePoint.price
-          lastKnownPrices.set(symbol, price)
+          lastKnownPrices.set(position.symbol, price)
         } else {
           // Use last known price if no data for this date
-          price = lastKnownPrices.get(symbol) ?? 0
+          price = lastKnownPrices.get(position.symbol) ?? 0
         }
 
         if (price > 0) {
-          totalValue += price * holding.totalQuantity
+          // Add this position's contribution to total value
+          totalValue += price * position.quantity
         }
       }
       
@@ -197,9 +203,9 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
     g.selectAll('.domain, .tick line')
       .style('stroke', 'hsl(var(--border))')
 
-    // Calculate entry points for each position
-    const entryPoints = holdings.map(holding => {
-      const initialDate = new Date(holding.initialDate)
+    // Calculate entry points for each individual position (not aggregated by symbol)
+    const entryPoints = allPositions.map(position => {
+      const initialDate = position.initialDate
       // Find the portfolio value at the initial date (or closest date after)
       const entryPoint = portfolioHistory.find(p => {
         const pDate = p.date
@@ -207,9 +213,10 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
       }) || portfolioHistory[portfolioHistory.length - 1]
 
       return {
-        symbol: holding.symbol,
+        symbol: position.symbol,
         date: initialDate,
         value: entryPoint?.value ?? 0,
+        quantity: position.quantity,
         x: xScale(initialDate),
         y: yScale(entryPoint?.value ?? 0)
       }
@@ -261,7 +268,7 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
       .style('cursor', 'pointer')
       .on('mouseover', function (_event, d) {
         entryTooltip.style('opacity', 1)
-        entryTooltipSymbol.text(`${d.symbol} Entry Point`)
+        entryTooltipSymbol.text(`${d.symbol} Entry Point (${d.quantity} shares)`)
         entryTooltipDate.text(formatDateDisplay(d.date))
         entryTooltipValue.text(formatCurrency(d.value))
 
