@@ -154,7 +154,6 @@ export function PortfolioChart ({ holdings }: PortfolioChartProps) {
       .x(d => xScale(d.date))
       .y0(height)
       .y1(d => yScale(d.value))
-      .curve(d3.curveCatmullRom.alpha(0.5))
 
     g.append('path')
       .datum(portfolioHistory)
