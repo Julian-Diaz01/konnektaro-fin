@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { PageLayout } from '@/components/layout'
-import { HoldingsTable, PortfolioChart } from '@/app/portfolio/components'
+import { HoldingsTable, PortfolioChart } from '@/app/holdings/components'
 import { useUserStocks } from '@/hooks/useUserStocks'
 import { Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'

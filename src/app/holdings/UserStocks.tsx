@@ -12,7 +12,7 @@ import { useUserStocks } from '@/hooks/useUserStocks'
 import type { CreateUserStockInput, UserStock } from '@/types/userStocks'
 import { deletePortfolioStock, addStockToPortfolio } from '@/app/api/portfolioStocksApi'
 import { formatCurrency } from '@/lib/format'
-import { SummaryCards } from '@/app/portfolio/components'
+import { SummaryCards } from '@/app/holdings/components'
 import type { PortfolioSummary } from '@/types/portfolio'
 
 export function UserStocks () {

@@ -1,8 +1,3 @@
-/**
- * @deprecated This file has been replaced by src/middleware.ts with Edge Runtime.
- * The middleware logic has been migrated to proper Next.js middleware format.
- * This file can be safely removed after verifying middleware.ts works correctly.
- */
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -24,7 +19,7 @@ function isAuthRoute (pathname: string): boolean {
   )
 }
 
-export function proxy (request: NextRequest) {
+export function middleware (request: NextRequest) {
   const { pathname } = request.nextUrl
   const authToken = request.cookies.get(AUTH_COOKIE_NAME)?.value
 
@@ -60,6 +55,7 @@ export function proxy (request: NextRequest) {
 }
 
 export const config = {
+  runtime: 'edge', // Edge runtime for faster execution globally
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
