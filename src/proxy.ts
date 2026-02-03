@@ -19,7 +19,7 @@ function isAuthRoute (pathname: string): boolean {
   )
 }
 
-export function middleware (request: NextRequest) {
+export function proxy (request: NextRequest) {
   const { pathname } = request.nextUrl
   const authToken = request.cookies.get(AUTH_COOKIE_NAME)?.value
 
@@ -55,7 +55,7 @@ export function middleware (request: NextRequest) {
 }
 
 export const config = {
-  runtime: 'edge', // Edge runtime for faster execution globally
+  // Edge runtime is default for proxy in Next.js 16 - no need to specify
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
