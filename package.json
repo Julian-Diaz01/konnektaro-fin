@@ -26,7 +26,7 @@
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
     "firebase": "^12.6.0",
-    "firebase-admin": "^13.6.0",
+    "firebase-admin": "^12.7.0",
     "lucide-react": "^0.555.0",
     "next": "^16.0.10",
     "next-themes": "^0.4.6",
@@ -40,6 +40,9 @@
     "zod": "^4.1.13",
     "zustand": "^5.0.9"
   },
+  "overrides": {
+    "fast-xml-parser": "5.3.4"
+  },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.6.1",
     "@tailwindcss/postcss": "^4",
@@ -47,6 +50,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "baseline-browser-mapping": "^2.9.19",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "eslint-plugin-react": "^7.37.5",
