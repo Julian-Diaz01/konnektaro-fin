@@ -2,26 +2,35 @@
 
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { Loader2, Clock, Trash2, Plus } from 'lucide-react'
+import { Loader2, Clock, Trash2, Plus, Upload, Info } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useUserStocks } from '@/hooks/useUserStocks'
 import type { CreateUserStockInput, UserStock } from '@/types/userStocks'
 import { deletePortfolioStock, addStockToPortfolio } from '@/app/api/portfolioStocksApi'
 import { formatCurrency } from '@/lib/format'
-import { SummaryCards } from '@/app/holdings/components'
+import { SummaryCards, CsvImportDialog } from '@/app/holdings/components'
 import type { PortfolioSummary } from '@/types/portfolio'
 
 export function UserStocks () {
   const queryClient = useQueryClient()
   const { stocksWithStatus, isLoading, error } = useUserStocks()
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
 
-  const summary = useMemo((): PortfolioSummary | null => {
+  const summary = useMemo((): PortfolioSummary => {
     if (stocksWithStatus.length === 0) {
-      return null
+      return {
+        totalValue: 0,
+        totalCost: 0,
+        totalGain: 0,
+        totalGainPercent: 0,
+        dayChange: 0,
+        dayChangePercent: 0
+      }
     }
 
     const totalValue = stocksWithStatus.reduce((sum, s) => sum + s.marketValue, 0)
@@ -48,6 +57,8 @@ export function UserStocks () {
       dayChangePercent
     }
   }, [stocksWithStatus])
+
+  const hasHoldings = stocksWithStatus.length > 0
 
   /* const holdings = useMemo((): PortfolioHolding[] => {
     return stocksWithStatus.map(({ stock, quote, avgCost, totalCost, marketValue, gainLoss, gainLossPercent, dayChangeValue }) => {
@@ -85,63 +96,186 @@ export function UserStocks () {
     })
  }, [stocksWithStatus]) */
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="py-12">
-          <p className="text-destructive text-center">
-            {error instanceof Error ? error.message : 'Failed to load user stocks'}
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <div className="space-y-6">
       <DataDelayNotice />
 
-      {summary && <SummaryCards summary={summary} />}
+      {isLoading ? (
+        <SummaryCardsSkeleton />
+      ) : (
+        <>
+          {!hasHoldings && (
+            <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+              <Info className="h-5 w-5 text-primary flex-shrink-0" />
+              <p className="text-sm text-primary">
+                Add stocks to see something here
+              </p>
+            </div>
+          )}
+          <SummaryCards summary={summary} />
+        </>
+      )}
 
       { /* holdings.length > 0 && <PortfolioChart holdings={holdings} /> */}
 
-      <UpsertStockForm
-        onSubmit={async (payload) => {
-          try {
-            await addStockToPortfolio(payload)
-            toast.success('Saved stock')
-            await queryClient.invalidateQueries({ queryKey: ['portfolio-stocks'] })
-            return true
-          } catch (e) {
-            toast.error(e instanceof Error ? e.message : 'Failed to save stock')
-            return false 
-          }
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add Stocks
+              </CardTitle>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setIsImportDialogOpen(true)}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Import CSV
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <UpsertStockForm
+            onSubmit={async (payload) => {
+              try {
+                await addStockToPortfolio(payload)
+                toast.success('Saved stock')
+                await queryClient.invalidateQueries({ queryKey: ['portfolio-stocks'] })
+                return true
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : 'Failed to save stock')
+                return false 
+              }
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      <CsvImportDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        onImport={async (holding) => {
+          // Import without invalidating queries - wait until dialog closes
+          await addStockToPortfolio(holding)
+        }}
+        onClose={async () => {
+          // Only refresh data after dialog is closed
+          await queryClient.invalidateQueries({ queryKey: ['portfolio-stocks'] })
         }}
       />
 
-      <HoldingsStatusTable
-        rows={stocksWithStatus}
-        onDelete={async (stock) => {
-          try {
-            await deletePortfolioStock(stock.id)
-            toast.success('Deleted stock')
-            await queryClient.invalidateQueries({ queryKey: ['portfolio-stocks'] })
-          } catch (e) {
-            toast.error(e instanceof Error ? e.message : 'Failed to delete stock')
-          }
-        }}
-      />
+      {isLoading ? (
+        <HoldingsStatusTableSkeleton />
+      ) : error ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Holdings</CardTitle>
+            <CardDescription>Your current stock positions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-destructive text-center py-8">
+              {error instanceof Error ? error.message : 'Failed to load user stocks'}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <HoldingsStatusTable
+          rows={stocksWithStatus}
+          onDelete={async (stock) => {
+            try {
+              await deletePortfolioStock(stock.id)
+              toast.success('Deleted stock')
+              await queryClient.invalidateQueries({ queryKey: ['portfolio-stocks'] })
+            } catch (e) {
+              toast.error(e instanceof Error ? e.message : 'Failed to delete stock')
+            }
+          }}
+        />
+      )}
     </div>
+  )
+}
+
+function SummaryCardsSkeleton () {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {[1, 2, 3, 4].map((i) => (
+        <Card key={i}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-4 rounded" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-8 w-32 mb-2" />
+            <Skeleton className="h-3 w-20" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+function HoldingsStatusTableSkeleton () {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Holdings</CardTitle>
+        <CardDescription>Your current stock positions</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-3 px-2 font-medium text-muted-foreground">Symbol</th>
+                <th className="text-right py-3 px-2 font-medium text-muted-foreground">Quantity</th>
+                <th className="text-right py-3 px-2 font-medium text-muted-foreground">Avg Cost</th>
+                <th className="text-right py-3 px-2 font-medium text-muted-foreground">Current Price</th>
+                <th className="text-right py-3 px-2 font-medium text-muted-foreground">Market Value</th>
+                <th className="text-right py-3 px-2 font-medium text-muted-foreground">Gain/Loss</th>
+                <th className="text-right py-3 px-2 font-medium text-muted-foreground">Day Change</th>
+                <th className="text-right py-3 px-2 font-medium text-muted-foreground"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {[1, 2, 3].map((i) => (
+                <tr key={i} className="border-b last:border-0">
+                  <td className="py-4 px-2">
+                    <Skeleton className="h-5 w-16 mb-1" />
+                    <Skeleton className="h-3 w-20" />
+                  </td>
+                  <td className="text-right py-4 px-2">
+                    <Skeleton className="h-5 w-20 ml-auto" />
+                  </td>
+                  <td className="text-right py-4 px-2">
+                    <Skeleton className="h-5 w-24 ml-auto" />
+                  </td>
+                  <td className="text-right py-4 px-2">
+                    <Skeleton className="h-5 w-24 ml-auto" />
+                  </td>
+                  <td className="text-right py-4 px-2">
+                    <Skeleton className="h-5 w-24 ml-auto" />
+                  </td>
+                  <td className="text-right py-4 px-2">
+                    <Skeleton className="h-5 w-20 ml-auto mb-1" />
+                    <Skeleton className="h-3 w-16 ml-auto" />
+                  </td>
+                  <td className="text-right py-4 px-2">
+                    <Skeleton className="h-5 w-20 ml-auto mb-1" />
+                    <Skeleton className="h-3 w-16 ml-auto" />
+                  </td>
+                  <td className="text-right py-4 px-2">
+                    <Skeleton className="h-8 w-8 ml-auto rounded" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -215,21 +349,10 @@ function UpsertStockForm ({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add / Update Stock
-        </CardTitle>
-        <CardDescription>
-          This uses <span className="font-mono">POST /api/portfolio/stocks</span> (upsert by symbol).
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form
-          onSubmit={handleSubmit}
-          className="grid gap-4 md:grid-cols-4"
-        >
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-4 md:grid-cols-4"
+    >
           <div className="grid gap-2">
             <Label htmlFor="symbol">Symbol</Label>
             <Input 
@@ -297,8 +420,6 @@ function UpsertStockForm ({
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
   )
 }
 
