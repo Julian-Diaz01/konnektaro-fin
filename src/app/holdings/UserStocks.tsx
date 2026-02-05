@@ -15,6 +15,7 @@ import { deletePortfolioStock, addStockToPortfolio } from '@/app/api/portfolioSt
 import { formatCurrency } from '@/lib/format'
 import { SummaryCards, CsvImportDialog } from '@/app/holdings/components'
 import type { PortfolioSummary } from '@/types/portfolio'
+import type { UserStockWithStatus } from '@/lib/userStocks'
 
 export function UserStocks () {
   const queryClient = useQueryClient()
@@ -185,10 +186,29 @@ export function UserStocks () {
           rows={stocksWithStatus}
           onDelete={async (stock) => {
             try {
+              // Optimistically update the cache - remove deleted stock and recalculate locally
+              queryClient.setQueryData<{ stocks: UserStock[], stocksWithStatus: UserStockWithStatus[] }>(
+                ['portfolio-stocks'],
+                (oldData) => {
+                  if (!oldData) return oldData
+                  
+                  // Remove the deleted stock from both arrays
+                  const newStocks = oldData.stocks.filter(s => s.id !== stock.id)
+                  const newStocksWithStatus = oldData.stocksWithStatus.filter(s => s.stock.id !== stock.id)
+                  
+                  return {
+                    stocks: newStocks,
+                    stocksWithStatus: newStocksWithStatus
+                  }
+                }
+              )
+              
+              // Send delete request to backend
               await deletePortfolioStock(stock.id)
               toast.success('Deleted stock')
-              await queryClient.invalidateQueries({ queryKey: ['portfolio-stocks'] })
             } catch (e) {
+              // On error, revert the optimistic update by refetching
+              await queryClient.invalidateQueries({ queryKey: ['portfolio-stocks'] })
               toast.error(e instanceof Error ? e.message : 'Failed to delete stock')
             }
           }}
