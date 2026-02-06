@@ -13,9 +13,19 @@ import { useUserStocks } from '@/hooks/useUserStocks'
 import type { CreateUserStockInput, UserStock } from '@/types/userStocks'
 import { deletePortfolioStock, addStockToPortfolio } from '@/app/api/portfolioStocksApi'
 import { formatCurrency } from '@/lib/format'
-import { SummaryCards, CsvImportDialog } from '@/app/holdings/components'
+import { SummaryCards } from '@/app/holdings/components'
+import dynamic from 'next/dynamic'
 import type { PortfolioSummary } from '@/types/portfolio'
 import type { UserStockWithStatus } from '@/lib/userStocks'
+
+// Lazy load the CSV import dialog
+const CsvImportDialog = dynamic(
+  () => import('@/app/holdings/components/CsvImportDialog').then(mod => ({ default: mod.CsvImportDialog })),
+  {
+    loading: () => null, // Don't show loading indicator for dialog
+    ssr: false // Dialog is client-only
+  }
+)
 
 export function UserStocks () {
   const queryClient = useQueryClient()
