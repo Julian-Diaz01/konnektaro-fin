@@ -1,12 +1,40 @@
 'use client'
 
 import { useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import { PageLayout } from '@/components/layout'
-import { HoldingsTable, PortfolioChart } from '@/app/holdings/components'
 import { useUserStocks } from '@/hooks/useUserStocks'
 import { Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import type { PortfolioHolding } from '@/types/portfolio'
+
+const PortfolioChart = dynamic(
+  () => import('@/app/holdings/components/PortfolioChart').then(mod => ({ default: mod.PortfolioChart })),
+  {
+    ssr: false,
+    loading: () => (
+      <Card>
+        <CardContent className="flex items-center justify-center min-h-[300px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    )
+  }
+)
+
+const HoldingsTable = dynamic(
+  () => import('@/app/holdings/components/HoldingsTable').then(mod => ({ default: mod.HoldingsTable })),
+  {
+    ssr: false,
+    loading: () => (
+      <Card>
+        <CardContent className="py-6">
+          <div className="text-center text-muted-foreground">Loading holdings…</div>
+        </CardContent>
+      </Card>
+    )
+  }
+)
 
 export default function PortfolioPage () {
   const { stocksWithStatus, isLoading, error } = useUserStocks()
@@ -101,3 +129,4 @@ export default function PortfolioPage () {
     </PageLayout>
   )
 }
+

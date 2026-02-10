@@ -1,7 +1,23 @@
 'use client'
 
+import dynamic from 'next/dynamic'
+import { Loader2 } from 'lucide-react'
 import { PageLayout } from '@/components/layout'
-import { UserStocks } from './UserStocks'
+import { Card, CardContent } from '@/components/ui/card'
+
+const UserStocks = dynamic(
+  () => import('./UserStocks').then(mod => ({ default: mod.UserStocks })),
+  {
+    ssr: false,
+    loading: () => (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    )
+  }
+)
 
 export default function PortfolioPage () {
   return (
@@ -17,3 +33,4 @@ export default function PortfolioPage () {
     </PageLayout>
   )
 }
+
