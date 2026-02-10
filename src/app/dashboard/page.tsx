@@ -1,113 +1,140 @@
 'use client'
 
-import { Wallet, TrendingUp, TrendingDown, Target } from 'lucide-react'
+import { ArrowUpRight, ArrowDownRight, Wallet } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { PageLayout } from '@/components/layout'
+import { useDashboardOverview } from '@/hooks/useDashboardOverview'
 
-// Placeholder data for UI demonstration
-const stats = [
-  {
-    title: 'Total Balance',
-    value: '$24,350.00',
-    change: '+12.5%',
-    trend: 'up',
-    icon: Wallet
-  },
-  {
-    title: 'Income (This Month)',
-    value: '$8,420.00',
-    change: '+8.2%',
-    trend: 'up',
-    icon: TrendingUp
-  },
-  {
-    title: 'Expenses (This Month)',
-    value: '$3,180.00',
-    change: '-2.4%',
-    trend: 'down',
-    icon: TrendingDown
-  },
-  {
-    title: 'Savings Goal',
-    value: '68%',
-    change: '+5%',
-    trend: 'up',
-    icon: Target
-  }
-]
+function formatCurrency (value?: number | null) {
+  if (value == null) return '—'
+  return value.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 2
+  })
+}
 
-const recentTransactions = [
-  { id: 1, description: 'Grocery Shopping', category: 'Food', amount: -156.32, date: 'Today' },
-  { id: 2, description: 'Salary Deposit', category: 'Income', amount: 4200.00, date: 'Yesterday' },
-  { id: 3, description: 'Netflix Subscription', category: 'Entertainment', amount: -15.99, date: 'Dec 1' },
-  { id: 4, description: 'Gas Station', category: 'Transport', amount: -45.00, date: 'Nov 30' },
-  { id: 5, description: 'Electric Bill', category: 'Utilities', amount: -128.50, date: 'Nov 29' }
-]
+function formatPercent (value?: number | null) {
+  if (value == null) return '—'
+  return `${value.toFixed(2)}%`
+}
 
 export default function DashboardPage () {
+  const { today, deltas, isLoading, error, refetch } = useDashboardOverview()
+
+  const hasData = !!today
+
   return (
     <PageLayout>
-      {/* Welcome Section */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Welcome back! 👋</h1>
-        <p className="text-muted-foreground">Here&apos;s an overview of your finances.</p>
+        <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
+        <p className="text-muted-foreground">
+          Here&apos;s an overview of your portfolio performance.
+        </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="hover:shadow-lg transition-shadow">
+      {isLoading && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Card key={index}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4 rounded-full" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-32 mb-2" />
+                <Skeleton className="h-3 w-24" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && error && (
+        <Card className="mb-8 border-destructive/40">
+          <CardHeader>
+            <CardTitle className="text-destructive">Unable to load overview</CardTitle>
+            <CardDescription>
+              Something went wrong while loading your dashboard overview. Please try again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {!isLoading && !error && hasData && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
+                Total value
               </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+              <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              {stat.change && (
-                <p className={`text-xs ${stat.trend === 'up' ? 'text-success' : 'text-destructive'}`}>
-                  {stat.change} from last month
-                </p>
-              )}
+              <div className="text-2xl font-bold">
+                {formatCurrency(today?.totalValue)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Invested: {formatCurrency(today?.totalInvested)}
+              </p>
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      {/* Recent Transactions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>Your latest financial activity</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recentTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between py-3 border-b last:border-0"
-              >
-                <div className="flex flex-col">
-                  <span className="font-medium">{transaction.description}</span>
-                  <span className="text-sm text-muted-foreground">{transaction.category}</span>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className={`font-semibold ${transaction.amount > 0 ? 'text-success' : 'text-foreground'}`}>
-                    {transaction.amount > 0 ? '+' : ''}
-                    ${Math.abs(transaction.amount).toFixed(2)}
-                  </span>
-                  <span className="text-sm text-muted-foreground">{transaction.date}</span>
-                </div>
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                P&amp;L
+              </CardTitle>
+              {today?.totalPnlValue != null && (
+                today.totalPnlValue >= 0 ? (
+                  <ArrowUpRight className="h-4 w-4 text-green-500" />
+                ) : (
+                  <ArrowDownRight className="h-4 w-4 text-red-500" />
+                )
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${today?.totalPnlValue != null ? (today.totalPnlValue >= 0 ? 'text-green-500' : 'text-red-500') : ''}`}>
+                {formatCurrency(today?.totalPnlValue)}
               </div>
-            ))}
-          </div>
-          <Button variant="outline" className="w-full mt-4">
-            View All Transactions
-          </Button>
-        </CardContent>
-      </Card>
+              <p className={`text-xs ${today?.totalPnlPercent != null ? (today.totalPnlPercent >= 0 ? 'text-green-500' : 'text-red-500') : 'text-muted-foreground'}`}>
+                {formatPercent(today?.totalPnlPercent)}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Change vs yesterday
+              </CardTitle>
+              {deltas?.deltaValue != null && (
+                deltas.deltaValue >= 0 ? (
+                  <ArrowUpRight className="h-4 w-4 text-green-500" />
+                ) : (
+                  <ArrowDownRight className="h-4 w-4 text-red-500" />
+                )
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${deltas?.deltaValue != null ? (deltas.deltaValue >= 0 ? 'text-green-500' : 'text-red-500') : ''}`}>
+                {formatCurrency(deltas?.deltaValue)}
+              </div>
+              <p className={`text-xs ${deltas?.deltaPnlValue != null ? (deltas.deltaPnlValue >= 0 ? 'text-green-500' : 'text-red-500') : 'text-muted-foreground'}`}>
+                P&amp;L change: {formatCurrency(deltas?.deltaPnlValue)} ({formatPercent(deltas?.deltaPnlPercent)})
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </PageLayout>
   )
 }
+
